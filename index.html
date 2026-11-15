@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Thailand &amp; Singapur 2027</title>
+  <meta name="theme-color" content="#0b2530">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <!-- Kartenbibliothek Leaflet (für die Seite "Karte") -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/route.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+
+  <!-- =====================================================
+       NAVIGATION (auf allen Unterseiten)
+       ===================================================== -->
+  <nav class="topnav" id="topnav" hidden>
+    <a class="topnav__brand" href="#start">TH <span>·</span> SG</a>
+    <div class="topnav__links">
+      <a href="#route" data-nav="route">Reiseroute</a>
+      <a href="#karte" data-nav="karte">Karte</a>
+      <a href="#todo" data-nav="todo">To-dos</a>
+      <a href="#ausgaben" data-nav="ausgaben">Ausgaben</a>
+    </div>
+  </nav>
+
+  <!-- =====================================================
+       STARTSEITE
+       ===================================================== -->
+  <section class="view start" id="view-start">
+    <div class="start__map" aria-hidden="true">
+      <svg id="route-map" viewBox="0 0 600 1097" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+
+    <div class="start__content">
+      <div>
+        <p class="start__eyebrow" id="trip-subtitle"></p>
+        <h1 class="start__title">Thailand<br><span>&amp; Singapur</span></h1>
+
+        <!-- Countdown als Abflugtafel -->
+        <div class="board" aria-live="polite">
+          <div class="board__head">
+            <span>Abflug <span class="board__arrow">→</span> <span id="board-dest"></span></span>
+            <span id="board-when"></span>
+            <span class="board__status" id="board-status">Planmäßig</span>
+          </div>
+          <div class="board__units" id="board-units">
+            <div class="board__unit"><div class="board__digits" id="cd-days"></div><span class="board__label">Tage</span></div>
+            <div class="board__unit"><div class="board__digits" id="cd-hours"></div><span class="board__label">Std</span></div>
+            <div class="board__unit"><div class="board__digits" id="cd-minutes"></div><span class="board__label">Min</span></div>
+            <div class="board__unit"><div class="board__digits" id="cd-seconds"></div><span class="board__label">Sek</span></div>
+          </div>
+        </div>
+        <p class="start__date" id="departure-text"></p>
+
+        <div class="start__actions">
+          <a class="btn btn--primary" href="#route">Route</a>
+          <a class="btn btn--ghost" href="#karte">Karte</a>
+          <a class="btn btn--ghost" href="#todo">To-dos</a>
+          <a class="btn btn--ghost" href="#ausgaben">Ausgaben</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       REISEROUTE (horizontale Timeline)
+       ===================================================== -->
+  <section class="view page page--wide" id="view-route" hidden>
+    <header class="page__header page__header--row">
+      <div>
+        <h2 class="page__title">Reiseroute</h2>
+        <p class="page__lead" id="route-summary"></p>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn--small btn--ghost-dark" id="tl-add-top">+ Etappe</button>
+        <button class="btn btn--small btn--ghost-dark" id="tl-add-sub">+ Abschnitt</button>
+        <span class="toolbar__sep"></span>
+        <button class="btn btn--small btn--ghost-dark btn--icon" id="tl-prev" aria-label="Zurück">‹</button>
+        <button class="btn btn--small btn--ghost-dark" id="tl-today">Heute</button>
+        <button class="btn btn--small btn--ghost-dark btn--icon" id="tl-next" aria-label="Weiter">›</button>
+      </div>
+    </header>
+
+    <div class="tl-scroll" id="tl-scroll">
+      <div class="tl-grid" id="tl-grid"><!-- wird von js/route.js gefüllt --></div>
+    </div>
+    <p class="hint">Tipp: Auf einen leeren Bereich in „Etappen“ oder „Abschnitte“ tippen, um dort einen Block anzulegen. Auf einen Block, eine Aktivität oder einen Nacht-Pfeil tippen, um ihn zu bearbeiten.</p>
+  </section>
+
+  <!-- =====================================================
+       KARTE (Orte für die Südreise sammeln)
+       ===================================================== -->
+  <section class="view page page--wide" id="view-karte" hidden>
+    <header class="page__header page__header--row">
+      <div>
+        <h2 class="page__title">Wo wollen wir hin?</h2>
+        <p class="page__lead" id="places-count"></p>
+      </div>
+      <div class="segmented" id="places-filter"></div>
+    </header>
+
+    <form class="place-search" id="place-search" autocomplete="off">
+      <input type="search" id="place-query" placeholder="Ort suchen, z. B. Koh Lipe, Khao Sok, Krabi" aria-label="Ort suchen">
+      <button class="btn btn--primary" type="submit">Suchen</button>
+      <ul class="results" id="place-results" hidden></ul>
+    </form>
+
+    <div class="places-layout">
+      <div class="places-map" id="places-map"></div>
+      <div class="places-side">
+        <div class="legend">
+          <span><span class="pin pin--static pin--a"></span>Lisa</span>
+          <span><span class="pin pin--static pin--b"></span>Michel</span>
+          <span><span class="pin pin--static pin--both"></span>Beide</span>
+        </div>
+        <ul class="places-list" id="places-list"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       TO-DOS
+       ===================================================== -->
+  <section class="view page" id="view-todo" hidden>
+    <header class="page__header">
+      <h2 class="page__title">To-dos <span class="badge" id="todo-progress"></span></h2>
+      <p class="page__lead">Alles, was vor der Reise noch erledigt werden muss.</p>
+    </header>
+
+    <form class="todo-form" id="todo-form">
+      <input type="text" id="todo-text" placeholder="Neues To-do, z. B. Visum prüfen" required maxlength="140">
+      <textarea id="todo-desc" rows="2" placeholder="Beschreibung (optional)"></textarea>
+      <select id="todo-who" aria-label="Wer kümmert sich?"></select>
+      <button class="btn btn--primary" type="submit">Hinzufügen</button>
+    </form>
+
+    <ul class="todo-list" id="todo-list"></ul>
+  </section>
+
+  <!-- =====================================================
+       AUSGABEN
+       ===================================================== -->
+  <section class="view page" id="view-ausgaben" hidden>
+    <header class="page__header page__header--row">
+      <div>
+        <h2 class="page__title">Ausgaben</h2>
+        <p class="page__lead">Alles wird 50/50 geteilt.</p>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn--small btn--primary" id="exp-add-spent">+ Ausgabe</button>
+        <button class="btn btn--small btn--ghost-dark" id="exp-add-planned">+ Geplant</button>
+      </div>
+    </header>
+
+    <div class="stats" id="exp-stats"></div>
+    <div class="balance" id="exp-balance"></div>
+
+    <section class="exp-section">
+      <h3 class="exp-section__title">Schon ausgegeben <span id="exp-spent-sum"></span></h3>
+      <ul class="exp-list" id="exp-spent"></ul>
+    </section>
+    <section class="exp-section">
+      <h3 class="exp-section__title">Geplant <span id="exp-planned-sum"></span></h3>
+      <ul class="exp-list" id="exp-planned"></ul>
+    </section>
+    <section class="exp-section" id="exp-transfers-wrap" hidden>
+      <h3 class="exp-section__title">Ausgleichszahlungen</h3>
+      <ul class="exp-list" id="exp-transfers"></ul>
+    </section>
+  </section>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,310 @@
+/* =========================================================
+   GRUNDLAGEN – Farben, Schriften, Buttons, Navigation,
+   Startseite, Dialog. Seiten-spezifisches liegt in css/.
+   ========================================================= */
+:root {
+  --c-night: #0b2530;
+  --c-sea: #0f766e;
+  --c-sea-light: #5eead4;
+  --c-sun: #f59e0b;
+  --c-coral: #e11d48;
+  --c-sand: #f7f3ec;
+  --c-card: #ffffff;
+  --c-text: #1c2730;
+  --c-muted: #64707d;
+  --c-line: #e4ddd2;
+  --c-ok: #15803d;
+  --c-open: #b45309;
+  --c-person-a: #e11d48;   /* Lisa */
+  --c-person-b: #0f766e;   /* Michel */
+
+  --radius: 14px;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 2px 8px rgb(0 0 0 / 0.04);
+
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--c-text);
+  background: var(--c-sand);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font: inherit; color: inherit; }
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.75rem 1.3rem;
+  font: 600 0.95rem var(--font-body);
+  text-decoration: none;
+  white-space: nowrap;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s, border-color 0.15s;
+}
+.btn:active { transform: scale(0.97); }
+.btn--primary { color: #1f1300; background: var(--c-sun); }
+.btn--primary:hover { background: #fbbf24; }
+.btn--ghost { color: #fff; background: rgb(255 255 255 / 0.08); border: 1px solid rgb(255 255 255 / 0.28); }
+.btn--ghost:hover { background: rgb(255 255 255 / 0.16); }
+.btn--ghost-dark { color: var(--c-text); background: var(--c-card); border: 1px solid var(--c-line); }
+.btn--ghost-dark:hover { border-color: #c9bfae; }
+.btn--danger { color: var(--c-coral); background: transparent; border: 1px solid #fecdd3; }
+.btn--small { padding: 0.4rem 0.85rem; font-size: 0.85rem; }
+.btn--icon { width: 2.1rem; padding-inline: 0; font-size: 1.1rem; }
+
+.badge {
+  padding: 0.1rem 0.6rem;
+  font: 600 0.8rem var(--font-body);
+  color: #134e4a;
+  background: #ccfbf1;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.hint { margin: 0.75rem 0 0; font-size: 0.8rem; color: var(--c-muted); }
+.empty { padding: 1.5rem 1rem; text-align: center; color: var(--c-muted); list-style: none; }
+
+/* =========================================================
+   STARTSEITE
+   ========================================================= */
+.start {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow: hidden;
+  color: #fff;
+  background:
+    radial-gradient(circle at 85% 15%, rgb(245 158 11 / 0.22), transparent 40%),
+    linear-gradient(170deg, #0f3b45 0%, var(--c-night) 55%, #08161d 100%);
+}
+
+.start__map { position: absolute; inset: 0 0 1.5rem 0; }
+.start__map svg { width: 100%; height: 100%; }
+
+/* Handy: Text + Buttons oben, darunter läuft die Karte */
+.start__content {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: max(2rem, env(safe-area-inset-top)) 1.25rem 2rem;
+  background: linear-gradient(180deg, rgb(11 37 48 / 0.96) 0%, rgb(11 37 48 / 0.88) 36%, rgb(11 37 48 / 0) 50%);
+}
+
+.start__eyebrow { margin: 0; font: 500 0.75rem var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.75; }
+
+.start__title {
+  margin: 0.3rem 0 1rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.4rem, 11vw, 5.5rem);
+  line-height: 0.95;
+}
+.start__title span { color: var(--c-sun); font-weight: 600; font-size: 0.6em; }
+
+/* ----- Countdown als Abflugtafel ----- */
+.board {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0.7rem 0.8rem 0.6rem;
+  background: #071419;
+  border: 1px solid #1d3540;
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 10px 30px rgb(0 0 0 / 0.35);
+}
+
+.board__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1rem;
+  justify-content: space-between;
+  margin-bottom: 0.55rem;
+  font: 500 0.7rem var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-sun);
+}
+.board__arrow { opacity: 0.6; }
+.board__status { color: #4ade80; }
+.board__status::before { content: "● "; animation: blink 2s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0.25; } }
+
+.board__units { display: flex; gap: 0.6rem; }
+.board__unit { display: grid; justify-items: center; gap: 0.25rem; }
+.board__unit--wide { justify-items: start; }
+.board__digits { display: flex; gap: 3px; }
+
+.flap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 2.3rem;
+  font: 700 1.55rem var(--font-mono);
+  color: #f8f4ea;
+  background: linear-gradient(180deg, #16262d 0%, #16262d 49%, #0d1a1f 51%, #0d1a1f 100%);
+  border-radius: 4px;
+  box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.5);
+}
+/* Der Spalt in der Mitte jeder Klappe */
+.flap::after {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 1px;
+  background: rgb(0 0 0 / 0.65);
+}
+.flap--text { width: auto; padding: 0 0.6rem; font-size: 1.3rem; }
+.flap.is-flipping { animation: flip 0.32s ease-out; }
+@keyframes flip {
+  0% { transform: rotateX(70deg); filter: brightness(0.6); }
+  100% { transform: rotateX(0); filter: none; }
+}
+
+.board__label { font: 500 0.6rem var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: #8aa3ad; }
+
+.start__date { display: none; margin: 0.9rem 0 0; font-size: 0.9rem; opacity: 0.8; }
+
+.start__actions { display: flex; gap: 0.4rem; margin-top: 1rem; }
+.start__actions .btn { flex: 1; padding: 0.6rem 0.4rem; font-size: 0.85rem; }
+
+/* ----- Routen-Animation (Elemente im SVG) ----- */
+.route-line--bg { fill: none; stroke: #fff; stroke-opacity: 0.18; stroke-width: 2; stroke-dasharray: 2 7; stroke-linecap: round; }
+.route-line { fill: none; stroke: var(--c-sun); stroke-width: 3; stroke-linecap: round; filter: drop-shadow(0 0 4px rgb(245 158 11 / 0.7)); }
+.route-line--drive { stroke: var(--c-sea-light); filter: drop-shadow(0 0 4px rgb(94 234 212 / 0.7)); }
+
+.stop circle.stop__dot { fill: #fff; }
+.stop circle.stop__pulse { fill: none; stroke: var(--c-sun); stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.stop text { fill: #fff; font: 600 22px var(--font-body); paint-order: stroke; stroke: var(--c-night); stroke-width: 6px; stroke-linejoin: round; }
+.stop text .stop__days { fill: var(--c-sun); font-weight: 500; }
+.stop { opacity: 0; transition: opacity 0.6s; }
+.stop.is-visible { opacity: 1; }
+.stop.is-visible .stop__pulse { animation: pulse 1.6s ease-out 2; }
+@keyframes pulse { from { opacity: 0.9; transform: scale(1); } to { opacity: 0; transform: scale(4); } }
+
+.plane { fill: #fff; filter: drop-shadow(0 0 6px rgb(255 255 255 / 0.8)); }
+.route-group { transition: opacity 0.8s; }
+.route-group.is-fading { opacity: 0; }
+
+@media (min-width: 900px) {
+  .start__map { inset: 0 2% 0 42%; }
+  .start__content { display: flex; flex-direction: column; justify-content: center; max-width: 640px; padding: 4rem 3rem; background: none; }
+  .start__date { display: block; }
+  .board { padding: 0.9rem 1rem 0.75rem; }
+  .flap { width: 2.2rem; height: 3.1rem; font-size: 2.1rem; }
+  .board__units { gap: 0.9rem; }
+  .start__actions { margin-top: 2rem; gap: 0.6rem; }
+  .start__actions .btn { flex: 0 0 auto; padding: 0.75rem 1.3rem; font-size: 0.95rem; }
+}
+
+/* =========================================================
+   NAVIGATION (Unterseiten)
+   ========================================================= */
+.topnav {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: var(--c-night);
+  color: #fff;
+}
+.topnav a { color: #fff; text-decoration: none; }
+.topnav__brand { flex: none; font: 700 0.95rem var(--font-mono); letter-spacing: 0.08em; }
+.topnav__brand span { color: var(--c-sun); }
+.topnav__links { display: flex; gap: 0.15rem; overflow-x: auto; scrollbar-width: none; }
+.topnav__links a { flex: none; padding: 0.35rem 0.75rem; font-size: 0.88rem; border-radius: 999px; opacity: 0.75; }
+.topnav__links a.is-active { background: rgb(255 255 255 / 0.14); opacity: 1; }
+@media (max-width: 420px) {
+  .topnav { gap: 0.4rem; padding-inline: 0.75rem; }
+  .topnav__brand { font-size: 0.8rem; }
+  .topnav__links a { padding: 0.3rem 0.5rem; font-size: 0.82rem; }
+}
+
+/* =========================================================
+   UNTERSEITEN – gemeinsames Layout
+   ========================================================= */
+.page { max-width: 760px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+.page--wide { max-width: 1400px; }
+.page__header { margin-bottom: 1.25rem; }
+.page__header--row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 0.75rem 1.5rem; }
+.page__title { margin: 0; font-family: var(--font-display); font-size: 2rem; line-height: 1.15; }
+.page__lead { margin: 0.25rem 0 0; color: var(--c-muted); font-size: 0.92rem; }
+
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+.toolbar__sep { width: 1px; height: 1.4rem; margin: 0 0.25rem; background: var(--c-line); }
+@media (max-width: 640px) {
+  .toolbar { gap: 0.3rem; }
+  .toolbar__sep { display: none; }
+  .toolbar .btn--small { padding: 0.4rem 0.65rem; }
+  .toolbar .btn--icon { width: 1.9rem; padding-inline: 0; }
+}
+
+.segmented { display: inline-flex; padding: 3px; background: #ebe4d8; border-radius: 999px; }
+.seg { padding: 0.3rem 0.8rem; font-size: 0.85rem; background: none; border: 0; border-radius: 999px; cursor: pointer; color: var(--c-muted); }
+.seg.is-active { background: #fff; color: var(--c-text); box-shadow: var(--shadow); }
+
+/* =========================================================
+   DIALOG & FORMULARE
+   ========================================================= */
+.dialog {
+  width: min(520px, calc(100vw - 1.5rem));
+  max-height: calc(100vh - 2rem);
+  padding: 1.4rem;
+  border: 0;
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgb(0 0 0 / 0.25);
+}
+.dialog::backdrop { background: rgb(11 37 48 / 0.55); backdrop-filter: blur(2px); }
+.dialog__title { margin: 0 0 1rem; font-family: var(--font-display); font-size: 1.35rem; }
+.dialog__actions { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; }
+.dialog__spacer { flex: 1; }
+
+.field { display: grid; gap: 0.3rem; margin: 0 0 0.85rem; padding: 0; border: 0; font-size: 0.88rem; font-weight: 500; min-width: 0; }
+.field legend { padding: 0; margin-bottom: 0.3rem; }
+.field__hint { font-weight: 400; color: var(--c-muted); font-size: 0.8rem; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+.field input, .field textarea, .field select,
+.todo-form input, .todo-form textarea, .todo-form select, .place-search input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.65rem 0.8rem;
+  font: 400 1rem var(--font-body);
+  color: var(--c-text);
+  background: #fff;
+  border: 1px solid var(--c-line);
+  border-radius: 10px;
+}
+.field textarea, .todo-form textarea { resize: vertical; }
+:is(.field, .todo-form, .place-search) :is(input, textarea, select):focus { outline: 2px solid var(--c-sea); outline-offset: 1px; }
+
+.field--check { display: flex; align-items: center; gap: 0.5rem; font-weight: 400; }
+.field--check input { width: 1.2rem; height: 1.2rem; accent-color: var(--c-sea); }
+
+.chip-checks { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.chip-check input { position: absolute; opacity: 0; pointer-events: none; }
+.chip-check span { display: inline-block; padding: 0.4rem 0.9rem; font-weight: 500; border: 1px solid var(--c-line); border-radius: 999px; cursor: pointer; }
+.chip-check input:checked + span { color: #fff; background: var(--c-sea); border-color: var(--c-sea); }
+.chip-check input:focus-visible + span { outline: 2px solid var(--c-sea); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stop.is-visible .stop__pulse, .flap.is-flipping, .board__status::before { animation: none; }
+  .route-group, .stop { transition: none; }
+}

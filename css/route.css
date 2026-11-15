@@ -1,0 +1,242 @@
+/* =========================================================
+   REISEROUTE – horizontale Timeline (wie eine Kalender-Wochenansicht)
+   ========================================================= */
+.tl-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  background: var(--c-card);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.tl-grid {
+  --label-w: 104px;   /* Breite der Beschriftungsspalte links */
+  --day-w: 168px;     /* Breite eines Tages */
+  display: grid;
+  width: max-content;
+  min-width: 100%;
+}
+
+.tl-label__icon { display: none; font-size: 0.9rem; color: var(--c-muted); }
+@media (max-width: 640px) {
+  .tl-grid { --label-w: 30px; --day-w: 148px; }
+  .tl-label__text { display: none; }
+  .tl-label__icon { display: inline; }
+}
+
+/* ----- Beschriftungsspalte (bleibt links stehen) ----- */
+.tl-corner, .tl-label {
+  position: sticky;
+  left: 0;
+  z-index: 6;
+  background: #faf7f2;
+  border-right: 1px solid var(--c-line);
+}
+.tl-corner { border-bottom: 1px solid var(--c-line); }
+.tl-label {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  font: 500 0.68rem var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  border-top: 1px solid var(--c-line);
+}
+@media (max-width: 640px) { .tl-label { justify-content: center; padding: 0.4rem 0; } }
+
+/* ----- Tagesspalten ----- */
+.tl-col {
+  border-left: 1px solid #efe9df;
+  scroll-snap-align: start;
+  scroll-margin-left: var(--label-w);
+}
+.tl-col.is-weekend { background: #fcfaf6; }
+.tl-col.is-today { background: #fff7e3; }
+
+.tl-day {
+  z-index: 2;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.6rem 0.75rem 0.5rem;
+  border-bottom: 1px solid var(--c-line);
+}
+.tl-day__wd { grid-column: 1; font: 500 0.7rem var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--c-muted); }
+.tl-day__num { grid-column: 1; grid-row: 2; font: 600 1.6rem/1 var(--font-display); }
+.tl-day__mon { grid-column: 2; grid-row: 2; font-size: 0.85rem; color: var(--c-muted); }
+.tl-day__no { grid-column: 2; grid-row: 1; justify-self: end; font: 500 0.68rem var(--font-mono); color: var(--c-muted); }
+.tl-day.is-today .tl-day__num { color: var(--c-open); }
+
+/* ----- Leere Flächen zum Anlegen ----- */
+.tl-slot {
+  z-index: 1;
+  margin: 4px;
+  font-size: 1.1rem;
+  color: transparent;
+  background: none;
+  border: 1px dashed transparent;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.tl-slot:hover, .tl-slot:focus-visible { color: var(--c-muted); border-color: #d6cdbd; }
+
+/* ----- Etappen & Abschnitte ----- */
+.tl-block {
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  margin: 5px 4px;
+  padding: 0.3rem 0.65rem;
+  text-align: left;
+  color: #fff;
+  background: var(--c);
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+}
+.tl-block strong, .tl-block span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.tl-block strong { font-size: 0.9rem; }
+.tl-block span { font-size: 0.72rem; opacity: 0.85; }
+.tl-block:hover { filter: brightness(1.08); }
+
+.tl-block--sub {
+  color: var(--c-text);
+  background: color-mix(in srgb, var(--c) 13%, white);
+  border-left: 4px solid var(--c);
+}
+.tl-block--sub span { color: var(--c-muted); opacity: 1; }
+
+/* ----- Aktivitäten ----- */
+.tl-acts {
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.5rem 0.45rem;
+  border-top: 1px solid var(--c-line);
+}
+.tl-act {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.82rem;
+  line-height: 1.3;
+  text-align: left;
+  background: #f2efe9;
+  border: 0;
+  border-left: 3px solid #b8ad9b;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.tl-act:hover { background: #ebe6dc; }
+.tl-act.is-booked { border-left-color: var(--c-ok); }
+.tl-act__time { flex: none; font: 500 0.72rem var(--font-mono); color: var(--c-muted); }
+.tl-act__title { flex: 1; min-width: 0; overflow-wrap: break-word; }
+.tl-act__booked { flex: none; color: var(--c-ok); font-weight: 700; }
+
+.tl-add {
+  margin-top: auto;
+  padding: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--c-muted);
+  background: none;
+  border: 1px dashed #d6cdbd;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.tl-add:hover { opacity: 1; color: var(--c-text); }
+
+/* ----- Nächte: Pfeil von Tagesmitte zu Tagesmitte ----- */
+.tl-night {
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  padding: 0 calc(var(--day-w) / 2);
+  pointer-events: none;   /* nur der Pfeil selbst ist klickbar */
+}
+.tl-rowline { z-index: 1; border-top: 1px solid var(--c-line); }
+
+.tl-night__btn {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 0.35rem 0.4rem;
+  background: none;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.tl-night__btn:hover { background: rgb(11 37 48 / 0.04); }
+
+.tl-night__label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tl-night__moon { flex: none; color: #6366f1; }
+.tl-night__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.tl-night__status {
+  flex: none;
+  padding: 0 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border-radius: 999px;
+}
+.is-booked .tl-night__status { color: var(--c-ok); background: #dcfce7; }
+.is-open .tl-night__status { color: var(--c-open); background: #fef3c7; }
+.is-empty .tl-night__label { color: var(--c-muted); font-weight: 400; }
+
+.tl-night__arrow {
+  position: relative;
+  height: 2px;
+  margin: 0 4px;
+  background: var(--c-night);
+}
+/* Startpunkt */
+.tl-night__arrow::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: -3px;
+  width: 8px;
+  height: 8px;
+  background: var(--c-night);
+  border-radius: 50%;
+}
+/* Pfeilspitze */
+.tl-night__arrow::after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  top: -5px;
+  border: 6px solid transparent;
+  border-left: 8px solid var(--c-night);
+  border-right: 0;
+}
+.is-open .tl-night__arrow, .is-open .tl-night__arrow::before { background: var(--c-open); }
+.is-open .tl-night__arrow::after { border-left-color: var(--c-open); }
+.is-booked .tl-night__arrow, .is-booked .tl-night__arrow::before { background: var(--c-ok); }
+.is-booked .tl-night__arrow::after { border-left-color: var(--c-ok); }
+.is-empty .tl-night__arrow { background: repeating-linear-gradient(90deg, #c9bfae 0 6px, transparent 6px 10px); }
+.is-empty .tl-night__arrow::before { background: #c9bfae; }
+.is-empty .tl-night__arrow::after { border-left-color: #c9bfae; }
