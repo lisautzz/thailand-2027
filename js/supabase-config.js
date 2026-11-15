@@ -8,5 +8,5 @@
 //
 // Solange die Felder leer sind, speichert die Seite nur lokal im Browser.
 // =========================================================
-export const SUPABASE_URL = "";       // z. B. "https://abcdefgh.supabase.co"
-export const SUPABASE_ANON_KEY = "";  // z. B. "eyJhbGciOi..." oder "sb_publishable_..."
+export const SUPABASE_URL = "https://futrjswmqsnvrnmauwgh.supabase.co";       // z. B. "https://abcdefgh.supabase.co"
+export const SUPABASE_ANON_KEY = "sb_publishable_zZK9EokG43lnT2C7hSQRVg_FdIY7y7B";  // z. B. "eyJhbGciOi..." oder "sb_publishable_..."
