@@ -10,7 +10,11 @@ import { store, newId } from "./store.js";
 import { $, esc } from "./utils.js";
 import { openForm } from "./ui.js";
 
-let places = store.load("places", []);
+let places = [];
+
+export function load() {
+  places = store.load("places", []);
+}
 let map, markers = {};
 let filter = "alle";
 
@@ -130,9 +134,9 @@ export function show() {
     }).addTo(map);
     // Tippen auf die Karte → neuen Ort an dieser Stelle anlegen
     map.on("click", (e) => edit({ name: "", lat: e.latlng.lat, lon: e.latlng.lng, description: "", interested: [] }, true));
-    render();
     if (places.length) map.fitBounds(places.map((p) => [p.lat, p.lon]), { padding: [40, 40], maxZoom: 9 });
   }
+  render();
   setTimeout(() => map.invalidateSize(), 0);
 }
 

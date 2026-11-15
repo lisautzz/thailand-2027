@@ -17,6 +17,22 @@ import { esc } from "./utils.js";
 
 let dialog;
 
+// Kurze Meldung unten am Bildschirm
+export function toast(message) {
+  let el = document.getElementById("toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "toast";
+    el.className = "toast";
+    el.setAttribute("role", "status");
+    document.body.append(el);
+  }
+  el.textContent = message;
+  el.classList.add("is-visible");
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.classList.remove("is-visible"), 3500);
+}
+
 function fieldHtml(f, value) {
   if (f.type === "row") {
     return `<div class="field-row">${f.fields.map((sub) => fieldHtml(sub, value?.[sub.name])).join("")}</div>`;

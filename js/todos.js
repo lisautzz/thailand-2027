@@ -7,7 +7,11 @@ import { store, newId } from "./store.js";
 import { $, esc } from "./utils.js";
 import { openForm } from "./ui.js";
 
-let todos = store.load("todos", DEFAULT_TODOS.map((t) => ({ ...t, id: newId(), done: false })));
+let todos = [];
+
+export function load() {
+  todos = store.load("todos", null) ?? DEFAULT_TODOS.map((t) => ({ ...t, id: newId(), done: false }));
+}
 const whoOptions = [{ value: "beide", label: "Beide" }, ...PEOPLE.map((p) => ({ value: p, label: p }))];
 
 function save() {
@@ -43,7 +47,8 @@ function edit(todo) {
     ],
     values: todo,
     onSave: (v) => {
-      Object.assign(todo, v);
+      const current = todos.find((x) => x.id === todo.id);
+      if (current) Object.assign(current, v);
       save();
     },
     onDelete: () => {

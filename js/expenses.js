@@ -12,7 +12,11 @@ import { store, newId } from "./store.js";
 import { $, esc, euro, todayIso } from "./utils.js";
 import { openForm } from "./ui.js";
 
-let expenses = store.load("expenses", []);
+let expenses = [];
+
+export function load() {
+  expenses = store.load("expenses", []);
+}
 const [A, B] = PEOPLE;
 
 function save() {
@@ -142,7 +146,8 @@ function markPaid(exp) {
     values: { amount: exp.amount, paidBy: A, date: todayIso() },
     submitLabel: "Als bezahlt speichern",
     onSave: (v) => {
-      Object.assign(exp, v, { type: "spent" });
+      const current = expenses.find((e) => e.id === exp.id);
+      if (current) Object.assign(current, v, { type: "spent" });
       save();
     },
   });

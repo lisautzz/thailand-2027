@@ -17,13 +17,20 @@ import { openForm } from "./ui.js";
 // blocks:     [{ id, name, from, to, color, parentId }]  parentId = null → Etappe
 // activities: [{ id, date, title, time, note, booked }]
 // nights:     { "2027-02-28": { stay, booked, note } }   = Nacht vom 28. auf den 1.
-let blocks = store.load("blocks", null) ?? DEFAULT_BLOCKS.map((b) => ({ ...b, id: newId(), parentId: null }));
-let activities = store.load("activities", []);
-let nights = store.load("nights", {});
-if (!store.has("blocks")) store.save("blocks", blocks); // Start-Etappen einmal festschreiben (feste IDs)
+let blocks = [], activities = [], nights = {};
+
+// Liest die Daten aus dem Speicher – beim Start und wenn Michel/Lisa
+// auf einem anderen Gerät etwas geändert hat
+export function load() {
+  blocks = store.load("blocks", null) ?? DEFAULT_BLOCKS.map((b) => ({ ...b, id: newId(), parentId: null }));
+  activities = store.load("activities", []);
+  nights = store.load("nights", {});
+  if (!store.has("blocks")) store.save("blocks", blocks); // Start-Etappen einmal festschreiben (feste IDs)
+  migrateV1();
+}
 
 // Übernimmt Einträge aus der ersten Version der Seite (eine Karte pro Tag)
-(function migrateV1() {
+function migrateV1() {
   const old = store.load("days", null);
   if (!old || store.has("activities")) return;
   for (const [date, d] of Object.entries(old)) {
@@ -31,17 +38,15 @@ if (!store.has("blocks")) store.save("blocks", blocks); // Start-Etappen einmal 
     if (d.plans) activities.push({ id: newId(), date, title: d.plans.split("\n")[0].slice(0, 60), time: "", note: d.plans, booked: false });
     if (d.bookings) activities.push({ id: newId(), date, title: "Buchung", time: "", note: d.bookings, booked: true });
   }
-  persist();
-})();
-
-function persist() {
-  store.save("blocks", blocks);
   store.save("activities", activities);
   store.save("nights", nights);
 }
 
-function saveAndRender() {
-  persist();
+// Speichert nur die Liste, die sich geändert hat (wichtig, damit
+// gleichzeitige Änderungen an anderen Listen nicht überschrieben werden)
+const DATA = { blocks: () => blocks, activities: () => activities, nights: () => nights };
+function saveAndRender(key) {
+  store.save(key, DATA[key]());
   render();
 }
 
@@ -218,12 +223,12 @@ function editBlock(block, isNew = false) {
       const data = { name: v.name, from: v.from, to: v.to, color: v.color, parentId: v.parentId || null };
       if (isNew) blocks.push({ id: newId(), ...data });
       else Object.assign(blocks.find((b) => b.id === block.id), data);
-      saveAndRender();
+      saveAndRender("blocks");
     },
     onDelete: isNew ? null : () => {
       // Abschnitte einer gelöschten Etappe werden mit gelöscht
       blocks = blocks.filter((b) => b.id !== block.id && b.parentId !== block.id);
-      saveAndRender();
+      saveAndRender("blocks");
     },
   });
 }
@@ -254,11 +259,11 @@ function editActivity(act, isNew = false) {
     onSave: (v) => {
       if (isNew) activities.push({ id: newId(), ...v });
       else Object.assign(activities.find((a) => a.id === act.id), v);
-      saveAndRender();
+      saveAndRender("activities");
     },
     onDelete: isNew ? null : () => {
       activities = activities.filter((a) => a.id !== act.id);
-      saveAndRender();
+      saveAndRender("activities");
     },
   });
 }
@@ -278,11 +283,11 @@ function editNight(date) {
     values: n || (prev ? { ...prev } : {}),
     onSave: (v) => {
       nights[date] = v;
-      saveAndRender();
+      saveAndRender("nights");
     },
     onDelete: n ? () => {
       delete nights[date];
-      saveAndRender();
+      saveAndRender("nights");
     } : null,
   });
 }

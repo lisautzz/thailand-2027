@@ -31,7 +31,25 @@
       <a href="#todo" data-nav="todo">To-dos</a>
       <a href="#ausgaben" data-nav="ausgaben">Ausgaben</a>
     </div>
+    <div class="topnav__meta">
+      <span class="sync" id="sync-status"></span>
+      <button class="topnav__logout" id="logout" hidden>Abmelden</button>
+    </div>
   </nav>
+
+  <!-- =====================================================
+       LOGIN (erscheint, wenn Supabase eingerichtet ist und
+       noch niemand eingeloggt ist)
+       ===================================================== -->
+  <section class="view page login" id="view-login" hidden>
+    <h2 class="page__title">Anmelden</h2>
+    <p class="page__lead">Gib deine E-Mail-Adresse ein. Du bekommst einen Link, mit dem du dich ohne Passwort anmeldest.</p>
+    <form class="login__form" id="login-form">
+      <input type="email" id="login-email" placeholder="deine@mail.de" required autocomplete="email">
+      <button class="btn btn--primary" type="submit">Login-Link schicken</button>
+    </form>
+    <p class="login__msg" id="login-msg" role="status"></p>
+  </section>
 
   <!-- =====================================================
        STARTSEITE
