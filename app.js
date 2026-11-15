@@ -70,9 +70,13 @@ function initLogin() {
     $("login-msg").textContent = "Einen Moment …";
     const error = await store.sendLoginLink(email);
     btn.disabled = false;
-    $("login-msg").textContent = error
-      ? "Das hat nicht geklappt. Ist die Adresse eingeladen? (" + error.message + ")"
-      : "Schau in dein Postfach und klick auf den Link in der E-Mail. Du landest dann eingeloggt wieder hier.";
+    let msg = "Schau in dein Postfach und klick auf den Link in der E-Mail. Du landest dann eingeloggt wieder hier.";
+    if (error && /rate limit/i.test(error.message)) {
+      msg = "Zu viele Login-Mails in kurzer Zeit. Der kostenlose Supabase-Mailversand erlaubt nur wenige pro Stunde – bitte später noch einmal versuchen (und nur einmal klicken).";
+    } else if (error) {
+      msg = "Das hat nicht geklappt. Ist die Adresse eingeladen? (" + error.message + ")";
+    }
+    $("login-msg").textContent = msg;
   });
 }
 
