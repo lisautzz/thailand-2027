@@ -145,14 +145,14 @@ export const store = {
   },
 
   // ---------- Login ----------
-  async sendLoginLink(email) {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: location.origin + location.pathname,
-        shouldCreateUser: false, // nur eingeladene Personen
-      },
-    });
+  // Login mit E-Mail + Passwort (es werden keine Mails verschickt)
+  async signIn(email, password) {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return error;
+  },
+
+  async changePassword(password) {
+    const { error } = await supabase.auth.updateUser({ password });
     return error;
   },
 

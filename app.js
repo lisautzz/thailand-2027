@@ -13,7 +13,7 @@
 // =========================================================
 import { $ } from "./js/utils.js";
 import { store } from "./js/store.js";
-import { toast } from "./js/ui.js";
+import { toast, openForm } from "./js/ui.js";
 import * as start from "./js/start.js";
 import * as route from "./js/route.js";
 import * as places from "./js/places.js";
@@ -64,19 +64,18 @@ function initLogin() {
 
   $("login-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const email = $("login-email").value.trim();
     const btn = $("login-form").querySelector("button");
     btn.disabled = true;
     $("login-msg").textContent = "Einen Moment …";
-    const error = await store.sendLoginLink(email);
+    const error = await store.signIn($("login-email").value.trim(), $("login-password").value);
     btn.disabled = false;
-    let msg = "Schau in dein Postfach und klick auf den Link in der E-Mail. Du landest dann eingeloggt wieder hier.";
-    if (error && /rate limit/i.test(error.message)) {
-      msg = "Zu viele Login-Mails in kurzer Zeit. Der kostenlose Supabase-Mailversand erlaubt nur wenige pro Stunde – bitte später noch einmal versuchen (und nur einmal klicken).";
-    } else if (error) {
-      msg = "Das hat nicht geklappt. Ist die Adresse eingeladen? (" + error.message + ")";
+    if (!error) {
+      location.reload(); // neu starten, jetzt mit Daten aus Supabase
+      return;
     }
-    $("login-msg").textContent = msg;
+    $("login-msg").textContent = /invalid login credentials/i.test(error.message)
+      ? "E-Mail oder Passwort stimmt nicht."
+      : "Anmelden hat nicht geklappt: " + error.message;
   });
 }
 
@@ -89,6 +88,17 @@ function initStatus() {
     status.className = "sync sync--cloud";
     $("logout").hidden = false;
     $("logout").addEventListener("click", () => store.signOut());
+    $("change-password").hidden = false;
+    $("change-password").addEventListener("click", () =>
+      openForm({
+        title: "Passwort ändern",
+        fields: [{ name: "password", label: "Neues Passwort (mind. 8 Zeichen)", type: "password", required: true }],
+        onSave: async ({ password }) => {
+          if (password.length < 8) return toast("Das Passwort braucht mindestens 8 Zeichen.");
+          const error = await store.changePassword(password);
+          toast(error ? "Ändern hat nicht geklappt: " + error.message : "Passwort geändert.");
+        },
+      }));
   } else if (store.mode === "local") {
     status.textContent = "● Nur lokal";
     status.title = "Supabase ist noch nicht eingerichtet – Daten liegen nur in diesem Browser.";

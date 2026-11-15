@@ -33,6 +33,7 @@
     </div>
     <div class="topnav__meta">
       <span class="sync" id="sync-status"></span>
+      <button class="topnav__logout" id="change-password" hidden>Passwort</button>
       <button class="topnav__logout" id="logout" hidden>Abmelden</button>
     </div>
   </nav>
@@ -43,10 +44,11 @@
        ===================================================== -->
   <section class="view page login" id="view-login" hidden>
     <h2 class="page__title">Anmelden</h2>
-    <p class="page__lead">Gib deine E-Mail-Adresse ein. Du bekommst einen Link, mit dem du dich ohne Passwort anmeldest.</p>
+    <p class="page__lead">Melde dich mit deiner E-Mail-Adresse und deinem Passwort an. Danach bleibst du auf diesem Gerät eingeloggt.</p>
     <form class="login__form" id="login-form">
-      <input type="email" id="login-email" placeholder="deine@mail.de" required autocomplete="email">
-      <button class="btn btn--primary" type="submit">Login-Link schicken</button>
+      <input type="email" id="login-email" placeholder="E-Mail" required autocomplete="email">
+      <input type="password" id="login-password" placeholder="Passwort" required autocomplete="current-password">
+      <button class="btn btn--primary" type="submit">Anmelden</button>
     </form>
     <p class="login__msg" id="login-msg" role="status"></p>
   </section>
