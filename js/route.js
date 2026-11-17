@@ -77,6 +77,27 @@ function assignLanes(items) {
   return Math.max(1, laneEnds.length);
 }
 
+// Fasst aufeinanderfolgende Nächte in derselben Unterkunft zusammen.
+// Gespeichert wird weiterhin eine Nacht pro Datum – so bleiben alte Daten gültig.
+const sameStay = (a, b) =>
+  a && b && a.stay === b.stay && !!a.booked === !!b.booked && (a.note || "") === (b.note || "");
+
+function groupStays(nightDates) {
+  const groups = [];
+  for (const d of nightDates) {
+    const n = nights[d]?.stay ? nights[d] : null;
+    const last = groups.at(-1);
+    if (n && last?.stay && sameStay(last.stay, n) && addDays(last.from, last.count) === d) last.count++;
+    else groups.push({ from: d, count: 1, stay: n });
+  }
+  return groups;
+}
+
+function stayAt(date) {
+  const { days } = getRange();
+  return groupStays(days.slice(0, -1)).find((g) => g.stay && g.from <= date && date < addDays(g.from, g.count));
+}
+
 // ---- Darstellung ----
 let firstRender = true;
 
@@ -94,7 +115,7 @@ export function render() {
 
   const grid = $("tl-grid");
   grid.style.gridTemplateColumns = `var(--label-w) repeat(${days.length}, var(--day-w))`;
-  grid.style.gridTemplateRows = `auto repeat(${L1}, 56px) repeat(${L2}, 50px) minmax(170px, auto) 76px`;
+  grid.style.gridTemplateRows = `auto repeat(${L1}, 44px) repeat(${L2}, 40px) minmax(150px, 1fr) 64px`;
 
   const html = [];
 
@@ -104,10 +125,10 @@ export function render() {
   const label = (row, span, text, icon) =>
     html.push(`<div class="tl-label" style="grid-row:${row} / span ${span};grid-column:1" title="${text}">
       <span class="tl-label__text">${text}</span><span class="tl-label__icon" aria-hidden="true">${icon}</span></div>`);
-  label(ROW_TOP, L1, "Etappen", "▰");
-  label(ROW_SUB, L2, "Abschnitte", "▱");
-  label(ROW_ACT, 1, "Aktivitäten", "✦");
-  label(ROW_NIGHT, 1, "Nächte", "☾");
+  label(ROW_TOP, L1, "Etappen", "◼");
+  label(ROW_SUB, L2, "Abschnitte", "◻");
+  label(ROW_ACT, 1, "Aktivitäten", "•");
+  label(ROW_NIGHT, 1, "Unterkunft", "☾");
 
   // Tagesspalten (Hintergrund + Kopf)
   days.forEach((iso, i) => {
@@ -156,24 +177,38 @@ export function render() {
     </div>`);
   });
 
-  // Nächte: Pfeil von der Mitte eines Tages zur Mitte des nächsten
+  // Unterkünfte: ein Pfeil von der Mitte des Check-in-Tags zur Mitte des
+  // Check-out-Tags. Mehrere Nächte in derselben Unterkunft = ein langer Pfeil.
   html.push(`<div class="tl-rowline" style="grid-column:2 / -1;grid-row:${ROW_NIGHT}"></div>`);
-  days.slice(0, -1).forEach((iso, i) => {
-    const n = nights[iso];
-    const state = !n ? "is-empty" : n.booked ? "is-booked" : "is-open";
-    const text = n ? esc(n.stay) : "Unterkunft eintragen";
-    html.push(`<div class="tl-night" style="grid-column:${i + 2} / span 2;grid-row:${ROW_NIGHT}">
-      <button class="tl-night__btn ${state}" data-night="${iso}" title="Nacht ${fmtDay(iso)} → ${fmtDay(addDays(iso, 1))}">
-        <span class="tl-night__label"><span class="tl-night__moon">☾</span><span class="tl-night__name">${text}</span>${n ? `<span class="tl-night__status">${n.booked ? "gebucht" : "offen"}</span>` : ""}</span>
+  for (const g of groupStays(days.slice(0, -1))) {
+    const i = daysBetween(start, g.from);
+    if (!g.stay) {
+      html.push(`<div class="tl-night" style="grid-column:${i + 2} / span 2;grid-row:${ROW_NIGHT}">
+        <button class="tl-night__btn is-empty" data-night="${g.from}" title="Nacht ${fmtDay(g.from)} → ${fmtDay(addDays(g.from, 1))}">
+          <span class="tl-night__label"><span class="tl-night__name">+ Unterkunft</span></span>
+          <span class="tl-night__arrow"></span>
+        </button>
+      </div>`);
+      continue;
+    }
+    const n = g.stay;
+    const state = n.booked ? "is-booked" : "is-open";
+    html.push(`<div class="tl-night" style="grid-column:${i + 2} / span ${g.count + 1};grid-row:${ROW_NIGHT}">
+      <button class="tl-night__btn ${state}" data-night="${g.from}" title="${esc(n.stay)}: ${fmtDay(g.from)} → ${fmtDay(addDays(g.from, g.count))}">
+        <span class="tl-night__label">
+          <span class="tl-night__name">${esc(n.stay)}</span>
+          <span class="tl-night__meta">${g.count} ${g.count === 1 ? "Nacht" : "Nächte"} · ${n.booked ? "gebucht" : "offen"}</span>
+        </span>
         <span class="tl-night__arrow"></span>
       </button>
     </div>`);
-  });
+  }
 
   grid.innerHTML = html.join("");
+  fitDays();
 
   // Zusammenfassung über der Timeline
-  const booked = days.slice(0, -1).filter((d) => nights[d]?.booked).length;
+  const booked = days.slice(0, -1).filter((d) => nights[d]?.stay && nights[d]?.booked).length;
   $("route-summary").textContent =
     `${fmtRange(start, end)} · ${days.length} Tage · ${booked} von ${days.length - 1} Nächten gebucht · ${activities.length} Aktivitäten`;
 
@@ -268,32 +303,61 @@ function editActivity(act, isNew = false) {
   });
 }
 
-function editNight(date) {
-  const n = nights[date];
-  // Neue Nacht: Unterkunft der Vornacht vorschlagen (spart Tipparbeit bei mehreren Nächten)
-  const prev = nights[addDays(date, -1)];
+function editStay(date) {
+  const group = stayAt(date);
+  const { end } = getRange();
+  // Neue Unterkunft: Vorschlag aus der Nacht davor (z. B. wenn man verlängert)
+  const prev = !group && nights[addDays(date, -1)]?.stay ? nights[addDays(date, -1)] : null;
+  const values = group
+    ? { ...group.stay, checkIn: group.from, count: group.count }
+    : { stay: prev?.stay || "", note: prev?.note || "", booked: !!prev?.booked, checkIn: date, count: 1 };
+
   openForm({
-    title: `Nacht ${fmtDay(date)} → ${fmtDay(addDays(date, 1))}`,
+    title: group ? "Unterkunft bearbeiten" : "Unterkunft eintragen",
     fields: [
       { name: "stay", label: "Unterkunft", type: "text", required: true, placeholder: "Hotel, Hostel, Airbnb, Nachtzug …",
-        hint: !n && prev ? "Vorschlag aus der Nacht davor" : "" },
+        hint: prev ? "Vorschlag aus der Nacht davor" : "" },
+      { type: "row", fields: [
+        { name: "checkIn", label: "Check-in", type: "date", required: true, max: addDays(end, -1) },
+        { name: "count", label: "Anzahl Nächte", type: "number", required: true, min: 1, max: 60, step: 1 },
+      ] },
       { name: "note", label: "Notizen", type: "textarea", placeholder: "Adresse, Link, Check-in-Zeit, Preis …" },
       { name: "booked", label: "Gebucht", type: "checkbox" },
     ],
-    values: n || (prev ? { ...prev } : {}),
+    values,
     onSave: (v) => {
-      nights[date] = v;
+      const count = Math.max(1, Math.round(v.count || 1));
+      // Alten Zeitraum freigeben, dann alle Nächte des neuen Zeitraums setzen
+      if (group) for (let i = 0; i < group.count; i++) delete nights[addDays(group.from, i)];
+      for (let i = 0; i < count; i++) {
+        nights[addDays(v.checkIn, i)] = { stay: v.stay, note: v.note, booked: v.booked };
+      }
       saveAndRender("nights");
     },
-    onDelete: n ? () => {
-      delete nights[date];
+    onDelete: group ? () => {
+      for (let i = 0; i < group.count; i++) delete nights[addDays(group.from, i)];
       saveAndRender("nights");
     } : null,
   });
 }
 
+// Tagesbreite an den Bildschirm anpassen: so viele Tage wie möglich
+// (mind. ~150 px pro Tag), und die verfügbare Breite wird ganz ausgenutzt.
+function fitDays() {
+  const el = scroller();
+  const grid = $("tl-grid");
+  if (!el.clientWidth) return;
+  const labelW = el.querySelector(".tl-corner")?.offsetWidth || 0;
+  const avail = el.clientWidth - labelW;
+  const total = getRange().days.length;
+  const min = window.innerWidth < 640 ? 132 : 150;
+  const visible = Math.max(1, Math.min(total, Math.floor(avail / min)));
+  grid.style.setProperty("--day-w", Math.floor(avail / visible) + "px");
+}
+
 export function init() {
   const grid = $("tl-grid");
+  new ResizeObserver(fitDays).observe(scroller());
 
   grid.addEventListener("click", (e) => {
     const t = e.target.closest("button");
@@ -302,7 +366,7 @@ export function init() {
     else if (t.dataset.addBlock) newBlock(t.dataset.addBlock, t.dataset.date);
     else if (t.dataset.act) editActivity(activities.find((a) => a.id === t.dataset.act));
     else if (t.dataset.addAct) editActivity({ date: t.dataset.addAct, title: "", time: "", note: "", booked: false }, true);
-    else if (t.dataset.night) editNight(t.dataset.night);
+    else if (t.dataset.night) editStay(t.dataset.night);
   });
 
   // Mausrad scrollt die Timeline seitwärts (Trackpads scrollen ohnehin seitwärts)

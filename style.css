@@ -196,7 +196,7 @@ button { font: inherit; color: inherit; }
 .stop.is-visible .stop__pulse { animation: pulse 1.6s ease-out 2; }
 @keyframes pulse { from { opacity: 0.9; transform: scale(1); } to { opacity: 0; transform: scale(4); } }
 
-.plane { fill: #fff; filter: drop-shadow(0 0 6px rgb(255 255 255 / 0.8)); }
+.plane { fill: #fff; stroke: #5f7d89; stroke-width: 0.45; stroke-linejoin: round; filter: drop-shadow(0 0 3px rgb(255 255 255 / 0.35)); }
 .route-group { transition: opacity 0.8s; }
 .route-group.is-fading { opacity: 0; }
 
@@ -242,6 +242,7 @@ button { font: inherit; color: inherit; }
    ========================================================= */
 .page { max-width: 760px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
 .page--wide { max-width: 1400px; }
+.page--full { max-width: none; padding-inline: clamp(0.75rem, 2vw, 2rem); }
 .page__header { margin-bottom: 1.25rem; }
 .page__header--row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 0.75rem 1.5rem; }
 .page__title { margin: 0; font-family: var(--font-display); font-size: 2rem; line-height: 1.15; }

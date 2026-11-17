@@ -95,7 +95,7 @@
   <!-- =====================================================
        REISEROUTE (horizontale Timeline)
        ===================================================== -->
-  <section class="view page page--wide" id="view-route" hidden>
+  <section class="view page page--full" id="view-route" hidden>
     <header class="page__header page__header--row">
       <div>
         <h2 class="page__title">Reiseroute</h2>
@@ -114,7 +114,7 @@
     <div class="tl-scroll" id="tl-scroll">
       <div class="tl-grid" id="tl-grid"><!-- wird von js/route.js gefüllt --></div>
     </div>
-    <p class="hint">Tipp: Auf einen leeren Bereich in „Etappen“ oder „Abschnitte“ tippen, um dort einen Block anzulegen. Auf einen Block, eine Aktivität oder einen Nacht-Pfeil tippen, um ihn zu bearbeiten.</p>
+    <p class="hint">Tipp: In eine leere Stelle bei „Etappen“ oder „Abschnitte“ tippen, um einen Block anzulegen. Auf „+ Unterkunft“ tippen, um eine Unterkunft für eine oder mehrere Nächte einzutragen.</p>
   </section>
 
   <!-- =====================================================
@@ -151,7 +151,7 @@
   <!-- =====================================================
        TO-DOS
        ===================================================== -->
-  <section class="view page" id="view-todo" hidden>
+  <section class="view page page--wide" id="view-todo" hidden>
     <header class="page__header">
       <h2 class="page__title">To-dos <span class="badge" id="todo-progress"></span></h2>
       <p class="page__lead">Alles, was vor der Reise noch erledigt werden muss.</p>
@@ -164,7 +164,7 @@
       <button class="btn btn--primary" type="submit">Hinzufügen</button>
     </form>
 
-    <ul class="todo-list" id="todo-list"></ul>
+    <div class="todo-cols" id="todo-list"></div>
   </section>
 
   <!-- =====================================================
@@ -182,8 +182,9 @@
       </div>
     </header>
 
-    <div class="stats" id="exp-stats"></div>
     <div class="balance" id="exp-balance"></div>
+    <div class="cats" id="exp-filter" role="toolbar" aria-label="Nach Kategorie filtern"></div>
+    <div class="stats" id="exp-stats"></div>
 
     <section class="exp-section">
       <h3 class="exp-section__title">Schon ausgegeben <span id="exp-spent-sum"></span></h3>

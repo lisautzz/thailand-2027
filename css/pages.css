@@ -5,16 +5,35 @@
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 .todo-form input, .todo-form textarea { grid-column: 1 / -1; }
-@media (min-width: 600px) {
-  .todo-form { grid-template-columns: 1fr 9rem auto; }
-  .todo-form textarea { grid-column: 1; }
-  .todo-form input { grid-column: 1 / -1; }
+@media (min-width: 900px) {
+  /* Laptop: alles in einer Zeile */
+  .todo-form { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.6fr) 10rem auto; align-items: start; }
+  .todo-form input, .todo-form textarea { grid-column: auto; }
+  .todo-form textarea { min-height: 2.9rem; height: 2.9rem; }
 }
 
-.todo-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+/* Drei Spalten: Beide · Lisa · Michel */
+.todo-cols { display: grid; gap: 1.25rem; }
+@media (min-width: 900px) { .todo-cols { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; } }
+.todo-col__title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 0 0 0.6rem;
+  padding-bottom: 0.4rem;
+  font: 600 0.78rem var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--c-text);
+}
+.todo-col:nth-child(2) .todo-col__title { border-color: var(--c-person-a); }
+.todo-col:nth-child(3) .todo-col__title { border-color: var(--c-person-b); }
+.todo-col__title span { font-weight: 500; letter-spacing: 0.04em; text-transform: none; color: var(--c-muted); }
+.todo-col__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.todo-col .empty { padding: 1rem; font-size: 0.88rem; }
 
 .todo {
   display: flex;
@@ -186,3 +205,22 @@
 
 /* Leaflet-Schrift an die Seite anpassen */
 .leaflet-container { font-family: var(--font-body); }
+
+/* ----- Ausgaben: Kategorie-Filter ----- */
+.cats { display: flex; gap: 0.4rem; margin: 0 0 0.75rem; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.cat {
+  flex: none;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  background: var(--c-card);
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.cat span { font: 500 0.75rem var(--font-mono); color: var(--c-muted); }
+.cat.is-active { color: #fff; background: var(--c-night); border-color: var(--c-night); }
+.cat.is-active span { color: #b9cbd2; }
+.exp__note { font-size: 0.8rem; color: var(--c-muted); white-space: pre-line; overflow-wrap: break-word; }

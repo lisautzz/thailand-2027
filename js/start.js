@@ -175,7 +175,19 @@ export function buildMap() {
   makeStop("south", MAP.south, [["Süden", ""], ["", "10 Tage Rundreise"]], "start", 50);
   makeStop("singapore", MAP.singapore, [["Singapur", " · 3 Tage"]], "end");
 
-  plane = svgEl("path", { class: "plane", d: "M16 0L-4-4-8-15h-4l2 11h-8l-3-5h-3l1 9-1 9h3l3-5h8l-2 11h4l4-11z", opacity: 0 });
+  // Airbus A380 von oben (Nase zeigt nach rechts): Rumpf, gepfeilte Flügel,
+  // 4 Triebwerke, Höhenleitwerk. Einheiten ≈ Meter / 2.
+  plane = svgEl("g", { class: "plane", opacity: 0 });
+  plane.innerHTML = `
+    <path d="M5.5 2.6L-8.5 19.2-10.6 19.2-7.4 9.8-6.6 2.6Z"/>
+    <path d="M5.5 -2.6L-8.5 -19.2-10.6 -19.2-7.4 -9.8-6.6 -2.6Z"/>
+    <path d="M-11 2.2L-16 8.4-17.6 8.4-16.4 2.2Z"/>
+    <path d="M-11 -2.2L-16 -8.4-17.6 -8.4-16.4 -2.2Z"/>
+    <rect x="-1.2" y="5.7" width="5" height="2" rx="1"/>
+    <rect x="-1.2" y="-7.7" width="5" height="2" rx="1"/>
+    <rect x="-5.6" y="11.6" width="4.8" height="1.9" rx="0.95"/>
+    <rect x="-5.6" y="-13.5" width="4.8" height="1.9" rx="0.95"/>
+    <path d="M18.4 0C18.4-2.2 16.6-3 13.4-3L-11.5-3C-14.8-2.8-17-1.4-18.4 0-17 1.4-14.8 2.8-11.5 3L13.4 3C16.6 3 18.4 2.2 18.4 0Z"/>`;
   car = svgEl("circle", { r: 7, fill: "#5eead4", opacity: 0 });
   routeGroup.append(plane, car);
 }
@@ -198,7 +210,7 @@ function animateSegment(seg, token) {
       const p = seg.el.getPointAtLength(l);
       const q = seg.el.getPointAtLength(Math.min(seg.len, l + 1));
       const angle = (Math.atan2(q.y - p.y, q.x - p.x) * 180) / Math.PI;
-      mover.setAttribute("transform", `translate(${p.x} ${p.y}) rotate(${angle}) scale(1.3)`);
+      mover.setAttribute("transform", `translate(${p.x} ${p.y}) rotate(${angle}) scale(${seg.mode === "fly" ? 1.45 : 1.3})`);
       if (t < 1) requestAnimationFrame(frame);
       else resolve();
     }

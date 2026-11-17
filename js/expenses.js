@@ -18,6 +18,7 @@ export function load() {
   expenses = store.load("expenses", []);
 }
 const [A, B] = PEOPLE;
+let catFilter = "alle"; // Kategorie-Filter auf der Seite
 
 function save() {
   store.save("expenses", expenses);
@@ -37,21 +38,33 @@ function balanceOfA() {
 }
 
 export function render() {
-  const spent = expenses.filter((e) => e.type === "spent");
-  const planned = expenses.filter((e) => e.type === "planned");
+  const allSpent = expenses.filter((e) => e.type === "spent");
+  const inCat = (e) => catFilter === "alle" || (e.category || "Sonstiges") === catFilter;
+  const spent = allSpent.filter(inCat);
+  const planned = expenses.filter((e) => e.type === "planned" && inCat(e));
   const transfers = expenses.filter((e) => e.type === "transfer");
   const sSpent = sum(spent), sPlanned = sum(planned), total = sSpent + sPlanned;
 
-  // Kennzahlen
+  // Filter-Leiste: Kategorien mit ihrer Summe (ausgegeben + geplant)
+  const costs = expenses.filter((e) => e.type !== "transfer");
+  const cats = [...new Set([...EXPENSE_CATEGORIES, ...costs.map((e) => e.category || "Sonstiges")])]
+    .filter((c) => costs.some((e) => (e.category || "Sonstiges") === c));
+  if (catFilter !== "alle" && !cats.includes(catFilter)) catFilter = "alle";
+  $("exp-filter").hidden = !cats.length;
+  $("exp-filter").innerHTML = [["alle", "Alle", sum(costs)], ...cats.map((c) => [c, c, sum(costs.filter((e) => (e.category || "Sonstiges") === c))])]
+    .map(([v, label, amount]) => `<button class="cat${v === catFilter ? " is-active" : ""}" data-cat="${esc(v)}">
+      ${esc(label)}<span>${euro(amount)}</span></button>`).join("");
+
+  // Kennzahlen (bei aktivem Filter nur für diese Kategorie)
   $("exp-stats").innerHTML = `
     <div class="stat"><span class="stat__label">Schon ausgegeben</span><span class="stat__value">${euro(sSpent)}</span></div>
     <div class="stat"><span class="stat__label">Noch geplant</span><span class="stat__value">${euro(sPlanned)}</span></div>
-    <div class="stat stat--total"><span class="stat__label">Geschätzt gesamt</span><span class="stat__value">${euro(total)}</span>
+    <div class="stat stat--total"><span class="stat__label">${catFilter === "alle" ? "Geschätzt gesamt" : "Gesamt " + esc(catFilter)}</span><span class="stat__value">${euro(total)}</span>
       <span class="stat__sub">${euro(total / 2)} pro Person</span></div>`;
 
   // Wer schuldet wem?
   const bal = balanceOfA();
-  const paidLine = PEOPLE.map((p) => `${esc(p)} hat ${euro(sum(spent.filter((e) => e.paidBy === p)))} bezahlt`).join(" · ");
+  const paidLine = PEOPLE.map((p) => `${esc(p)} hat ${euro(sum(allSpent.filter((e) => e.paidBy === p)))} bezahlt`).join(" · ");
   if (Math.abs(bal) < 0.005) {
     $("exp-balance").innerHTML = `<p class="balance__main">Ihr seid quitt.</p><p class="balance__sub">${paidLine}</p>`;
   } else {
@@ -72,6 +85,7 @@ export function render() {
       <button class="exp__main" data-edit="${e.id}">
         <span class="exp__title">${esc(e.title)}</span>
         <span class="exp__meta">${meta}</span>
+        ${e.note ? `<span class="exp__note">${esc(e.note)}</span>` : ""}
       </button>
       ${e.type === "planned" ? `<button class="btn btn--small btn--ghost-dark" data-pay="${e.id}">Bezahlt</button>` : ""}
       <span class="exp__amount">${euro(e.amount)}</span>
@@ -82,7 +96,8 @@ export function render() {
 
   $("exp-spent").innerHTML = list(spent, "Noch nichts ausgegeben.");
   $("exp-planned").innerHTML = list(planned, "Noch keine geplanten Ausgaben.");
-  $("exp-transfers-wrap").hidden = !transfers.length;
+  // Ausgleichszahlungen gehören zu keiner Kategorie – nur ohne Filter zeigen
+  $("exp-transfers-wrap").hidden = !transfers.length || catFilter !== "alle";
   $("exp-transfers").innerHTML = list(transfers, "");
   $("exp-spent-sum").textContent = euro(sSpent);
   $("exp-planned-sum").textContent = euro(sPlanned);
@@ -154,7 +169,7 @@ function markPaid(exp) {
 }
 
 function settle(debtor, amount) {
-  editTransfer({ type: "transfer", title: "Ausgleich", amount: Math.round(amount * 100) / 100, paidBy: debtor, date: todayIso() }, true);
+  editTransfer({ type: "transfer", title: "Ausgleich", amount: Math.round(amount * 100) / 100, paidBy: debtor, date: todayIso(), note: "" }, true);
 }
 
 function editTransfer(exp, isNew = false) {
@@ -166,6 +181,7 @@ function editTransfer(exp, isNew = false) {
         { name: "paidBy", label: "Überwiesen von", type: "select", options: PEOPLE },
       ] },
       { name: "date", label: "Datum", type: "date" },
+      { name: "note", label: "Notiz", type: "textarea", rows: 2, placeholder: "z. B. per PayPal, für Flüge + Hotel Bangkok" },
     ],
     values: exp,
     onSave: (v) => {
@@ -185,6 +201,13 @@ export function init() {
     edit({ type: "spent", title: "", amount: null, paidBy: A, category: EXPENSE_CATEGORIES[0], date: todayIso(), note: "" }, true));
   $("exp-add-planned").addEventListener("click", () =>
     edit({ type: "planned", title: "", amount: null, category: EXPENSE_CATEGORIES[0], date: "", note: "" }, true));
+
+  $("exp-filter").addEventListener("click", (e) => {
+    const c = e.target.closest("[data-cat]")?.dataset.cat;
+    if (!c) return;
+    catFilter = c;
+    render();
+  });
 
   $("view-ausgaben").addEventListener("click", (e) => {
     const { edit: editId, pay } = e.target.closest("button")?.dataset || {};

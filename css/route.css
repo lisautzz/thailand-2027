@@ -1,242 +1,232 @@
 /* =========================================================
-   REISEROUTE – horizontale Timeline (wie eine Kalender-Wochenansicht)
+   REISEROUTE – horizontale Timeline, schlicht gehalten
+   Die Tagesbreite (--day-w) setzt js/route.js passend zum Bildschirm.
    ========================================================= */
 .tl-scroll {
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scroll-snap-type: x proximity;
+  scrollbar-width: thin;
   background: var(--c-card);
-  border: 1px solid var(--c-line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  border-top: 1px solid var(--c-line);
+  border-bottom: 1px solid var(--c-line);
 }
 
 .tl-grid {
-  --label-w: 104px;   /* Breite der Beschriftungsspalte links */
-  --day-w: 168px;     /* Breite eines Tages */
+  --label-w: 96px;
+  --day-w: 160px;
   display: grid;
   width: max-content;
   min-width: 100%;
+  /* füllt die Bildschirmhöhe; zusätzlicher Platz geht an die Aktivitäten */
+  min-height: max(420px, calc(100vh - 230px));
+  min-height: max(420px, calc(100svh - 230px));
 }
-
-.tl-label__icon { display: none; font-size: 0.9rem; color: var(--c-muted); }
-@media (max-width: 640px) {
-  .tl-grid { --label-w: 30px; --day-w: 148px; }
-  .tl-label__text { display: none; }
-  .tl-label__icon { display: inline; }
-}
+@media (max-width: 640px) { .tl-grid { --label-w: 28px; } }
 
 /* ----- Beschriftungsspalte (bleibt links stehen) ----- */
 .tl-corner, .tl-label {
   position: sticky;
   left: 0;
   z-index: 6;
-  background: #faf7f2;
-  border-right: 1px solid var(--c-line);
+  background: var(--c-card);
 }
-.tl-corner { border-bottom: 1px solid var(--c-line); }
 .tl-label {
   display: flex;
-  align-items: center;
-  padding: 0.5rem 0.75rem;
-  font: 500 0.68rem var(--font-mono);
-  letter-spacing: 0.1em;
+  align-items: flex-start;
+  padding: 0.7rem 0.75rem;
+  font: 500 0.62rem var(--font-mono);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--c-muted);
-  border-top: 1px solid var(--c-line);
+  color: #9aa3ab;
 }
-@media (max-width: 640px) { .tl-label { justify-content: center; padding: 0.4rem 0; } }
+.tl-label__icon { display: none; font-size: 0.75rem; color: #b3bac0; }
+@media (max-width: 640px) {
+  .tl-label { justify-content: center; padding: 0.7rem 0; }
+  .tl-label__text { display: none; }
+  .tl-label__icon { display: inline; }
+}
 
 /* ----- Tagesspalten ----- */
 .tl-col {
-  border-left: 1px solid #efe9df;
+  border-left: 1px solid #f1ede6;
   scroll-snap-align: start;
   scroll-margin-left: var(--label-w);
 }
-.tl-col.is-weekend { background: #fcfaf6; }
-.tl-col.is-today { background: #fff7e3; }
+.tl-col.is-today { background: #fffaf0; }
 
 .tl-day {
   z-index: 2;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-rows: auto auto;
-  column-gap: 0.5rem;
+  display: flex;
   align-items: baseline;
-  padding: 0.6rem 0.75rem 0.5rem;
+  gap: 0.4rem;
+  padding: 0.8rem 0.75rem 0.7rem;
   border-bottom: 1px solid var(--c-line);
+  white-space: nowrap;
 }
-.tl-day__wd { grid-column: 1; font: 500 0.7rem var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--c-muted); }
-.tl-day__num { grid-column: 1; grid-row: 2; font: 600 1.6rem/1 var(--font-display); }
-.tl-day__mon { grid-column: 2; grid-row: 2; font-size: 0.85rem; color: var(--c-muted); }
-.tl-day__no { grid-column: 2; grid-row: 1; justify-self: end; font: 500 0.68rem var(--font-mono); color: var(--c-muted); }
-.tl-day.is-today .tl-day__num { color: var(--c-open); }
+.tl-day__num { font: 600 1.25rem/1 var(--font-body); font-variant-numeric: tabular-nums; }
+.tl-day__wd, .tl-day__mon { font-size: 0.78rem; color: var(--c-muted); }
+.tl-day__wd { order: -1; text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.06em; }
+.tl-day__no { margin-left: auto; font: 500 0.62rem var(--font-mono); color: #b3bac0; }
+.tl-day.is-today .tl-day__num { color: var(--c-coral); }
 
 /* ----- Leere Flächen zum Anlegen ----- */
 .tl-slot {
   z-index: 1;
-  margin: 4px;
-  font-size: 1.1rem;
+  margin: 4px 3px;
+  font-size: 1rem;
   color: transparent;
   background: none;
   border: 1px dashed transparent;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
 }
-.tl-slot:hover, .tl-slot:focus-visible { color: var(--c-muted); border-color: #d6cdbd; }
+.tl-slot:hover, .tl-slot:focus-visible { color: #b3bac0; border-color: #e2dcd2; }
 
 /* ----- Etappen & Abschnitte ----- */
 .tl-block {
   z-index: 3;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  align-items: baseline;
+  gap: 0.5rem;
   min-width: 0;
-  margin: 5px 4px;
-  padding: 0.3rem 0.65rem;
+  margin: 6px 3px;
+  padding: 0 0.65rem;
   text-align: left;
   color: #fff;
   background: var(--c);
   border: 0;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   overflow: hidden;
+  white-space: nowrap;
+  line-height: 32px;
 }
-.tl-block strong, .tl-block span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.tl-block strong { font-size: 0.9rem; }
-.tl-block span { font-size: 0.72rem; opacity: 0.85; }
-.tl-block:hover { filter: brightness(1.08); }
+.tl-block strong { font-size: 0.86rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.tl-block span { font-size: 0.72rem; opacity: 0.8; overflow: hidden; text-overflow: ellipsis; }
+.tl-block:hover { filter: brightness(1.07); }
 
 .tl-block--sub {
+  line-height: 26px;
   color: var(--c-text);
-  background: color-mix(in srgb, var(--c) 13%, white);
-  border-left: 4px solid var(--c);
+  background: color-mix(in srgb, var(--c) 10%, white);
+  box-shadow: inset 3px 0 0 var(--c);
 }
 .tl-block--sub span { color: var(--c-muted); opacity: 1; }
 
-/* ----- Aktivitäten ----- */
+.tl-rowline { z-index: 1; border-top: 1px solid #f1ede6; }
+
+/* ----- Aktivitäten: schlichte Liste ----- */
 .tl-acts {
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.15rem;
   min-width: 0;
-  padding: 0.5rem 0.45rem;
-  border-top: 1px solid var(--c-line);
+  padding: 0.6rem 0.5rem;
+  border-top: 1px solid #f1ede6;
 }
 .tl-act {
   display: flex;
   align-items: baseline;
-  gap: 0.35rem;
-  padding: 0.4rem 0.5rem;
+  gap: 0.4rem;
+  padding: 0.25rem 0.3rem;
   font-size: 0.82rem;
   line-height: 1.3;
   text-align: left;
-  background: #f2efe9;
+  background: none;
   border: 0;
-  border-left: 3px solid #b8ad9b;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
 }
-.tl-act:hover { background: #ebe6dc; }
-.tl-act.is-booked { border-left-color: var(--c-ok); }
+.tl-act::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: #c9c2b6; transform: translateY(-1px); }
+.tl-act.is-booked::before { background: var(--c-ok); }
+.tl-act:hover { background: #f6f3ee; }
 .tl-act__time { flex: none; font: 500 0.72rem var(--font-mono); color: var(--c-muted); }
 .tl-act__title { flex: 1; min-width: 0; overflow-wrap: break-word; }
-.tl-act__booked { flex: none; color: var(--c-ok); font-weight: 700; }
+.tl-act__booked { display: none; }
 
 .tl-add {
-  margin-top: auto;
-  padding: 0.3rem;
-  font-size: 0.78rem;
-  color: var(--c-muted);
+  align-self: flex-start;
+  margin-top: 0.2rem;
+  padding: 0.2rem 0.3rem;
+  font-size: 0.75rem;
+  color: #a8afb5;
   background: none;
-  border: 1px dashed #d6cdbd;
-  border-radius: 6px;
+  border: 0;
   cursor: pointer;
-  opacity: 0.7;
+  opacity: 0;
+  transition: opacity 0.15s;
 }
-.tl-add:hover { opacity: 1; color: var(--c-text); }
+.tl-acts:hover .tl-add, .tl-add:focus-visible { opacity: 1; }
+.tl-add:hover { color: var(--c-text); }
+@media (hover: none) { .tl-add { opacity: 0.8; } }
 
-/* ----- Nächte: Pfeil von Tagesmitte zu Tagesmitte ----- */
+/* ----- Unterkünfte: Pfeil von Tagesmitte zu Tagesmitte ----- */
 .tl-night {
   z-index: 2;
   display: flex;
   align-items: center;
   padding: 0 calc(var(--day-w) / 2);
-  pointer-events: none;   /* nur der Pfeil selbst ist klickbar */
+  pointer-events: none;
 }
-.tl-rowline { z-index: 1; border-top: 1px solid var(--c-line); }
-
 .tl-night__btn {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: 0.3rem;
+  gap: 0.35rem;
   width: 100%;
-  padding: 0.35rem 0.4rem;
+  min-width: 0;
+  padding: 0.3rem 0.35rem;
   background: none;
   border: 0;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   pointer-events: auto;
 }
-.tl-night__btn:hover { background: rgb(11 37 48 / 0.04); }
+.tl-night__btn:hover { background: #f6f3ee; }
 
 .tl-night__label {
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 0.3rem;
-  font-size: 0.78rem;
-  font-weight: 500;
+  align-items: baseline;
+  gap: 0.45rem;
+  min-width: 0;
+  font-size: 0.8rem;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
-.tl-night__moon { flex: none; color: #6366f1; }
-.tl-night__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.tl-night__status {
-  flex: none;
-  padding: 0 0.4rem;
-  font-size: 0.65rem;
-  font-weight: 600;
-  border-radius: 999px;
-}
-.is-booked .tl-night__status { color: var(--c-ok); background: #dcfce7; }
-.is-open .tl-night__status { color: var(--c-open); background: #fef3c7; }
-.is-empty .tl-night__label { color: var(--c-muted); font-weight: 400; }
+.tl-night__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+.tl-night__meta { flex: none; font-size: 0.7rem; color: var(--c-muted); }
+.is-empty .tl-night__name { font-weight: 400; color: #b3bac0; }
+.is-empty { opacity: 0.35; transition: opacity 0.15s; }
+.is-empty:hover, .is-empty:focus-visible { opacity: 1; }
+@media (hover: none) { .is-empty { opacity: 0.6; } }
 
 .tl-night__arrow {
+  --a: var(--c-night);
   position: relative;
-  height: 2px;
-  margin: 0 4px;
-  background: var(--c-night);
+  height: 1.5px;
+  margin: 0 3px;
+  background: var(--a);
 }
-/* Startpunkt */
 .tl-night__arrow::before {
   content: "";
   position: absolute;
-  left: -4px;
-  top: -3px;
-  width: 8px;
-  height: 8px;
-  background: var(--c-night);
+  left: -3px;
+  top: -2.5px;
+  width: 6px;
+  height: 6px;
+  background: var(--a);
   border-radius: 50%;
 }
-/* Pfeilspitze */
 .tl-night__arrow::after {
   content: "";
   position: absolute;
-  right: -4px;
-  top: -5px;
-  border: 6px solid transparent;
-  border-left: 8px solid var(--c-night);
+  right: -3px;
+  top: -4px;
+  border: 4.75px solid transparent;
+  border-left: 6px solid var(--a);
   border-right: 0;
 }
-.is-open .tl-night__arrow, .is-open .tl-night__arrow::before { background: var(--c-open); }
-.is-open .tl-night__arrow::after { border-left-color: var(--c-open); }
-.is-booked .tl-night__arrow, .is-booked .tl-night__arrow::before { background: var(--c-ok); }
-.is-booked .tl-night__arrow::after { border-left-color: var(--c-ok); }
-.is-empty .tl-night__arrow { background: repeating-linear-gradient(90deg, #c9bfae 0 6px, transparent 6px 10px); }
-.is-empty .tl-night__arrow::before { background: #c9bfae; }
-.is-empty .tl-night__arrow::after { border-left-color: #c9bfae; }
+.is-booked .tl-night__arrow { --a: var(--c-ok); }
+.is-open .tl-night__arrow { --a: var(--c-open); }
+.is-empty .tl-night__arrow { --a: #c9c2b6; background: repeating-linear-gradient(90deg, #c9c2b6 0 5px, transparent 5px 9px); }

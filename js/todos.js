@@ -20,19 +20,26 @@ function save() {
 }
 
 export function render() {
-  const sorted = [...todos].sort((a, b) => a.done - b.done); // offene zuerst
-  $("todo-list").innerHTML = sorted.length
-    ? sorted.map((t) => `
+  const item = (t) => `
       <li class="todo${t.done ? " is-done" : ""}">
         <input type="checkbox" data-toggle="${t.id}" ${t.done ? "checked" : ""} aria-label="Erledigt">
         <div class="todo__body">
           <button class="todo__text" data-edit="${t.id}">${esc(t.text)}</button>
           ${t.description ? `<p class="todo__desc">${esc(t.description)}</p>` : ""}
         </div>
-        <span class="todo__who">${esc(t.who)}</span>
         <button class="todo__delete" data-delete="${t.id}" aria-label="Löschen">×</button>
-      </li>`).join("")
-    : '<li class="empty">Alles erledigt. Jetzt nur noch Koffer packen!</li>';
+      </li>`;
+
+  // Drei Spalten: Beide · Lisa · Michel (offene To-dos jeweils oben)
+  $("todo-list").innerHTML = whoOptions.map((o) => {
+    const list = todos.filter((t) => (whoOptions.some((w) => w.value === t.who) ? t.who : "beide") === o.value)
+      .sort((a, b) => a.done - b.done);
+    const open = list.filter((t) => !t.done).length;
+    return `<section class="todo-col">
+      <h3 class="todo-col__title">${o.value === "beide" ? "Beide" : "Nur " + esc(o.label)}<span>${open} offen</span></h3>
+      <ul class="todo-col__list">${list.length ? list.map(item).join("") : '<li class="empty">Nichts zu tun.</li>'}</ul>
+    </section>`;
+  }).join("");
 
   $("todo-progress").textContent = `${todos.filter((t) => t.done).length}/${todos.length}`;
 }

@@ -127,10 +127,14 @@ export function show() {
     return;
   }
   if (!map) {
-    map = L.map("places-map", { zoomControl: true }).setView([MAP_VIEW.lat, MAP_VIEW.lon], MAP_VIEW.zoom);
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    map = L.map("places-map", { zoomControl: false }).setView([MAP_VIEW.lat, MAP_VIEW.lon], MAP_VIEW.zoom);
+    L.control.zoom({ zoomInTitle: "Hineinzoomen", zoomOutTitle: "Herauszoomen" }).addTo(map);
+    map.attributionControl.setPrefix(false);
+    // Deutsche OpenStreetMap-Karte: Ortsnamen auf Deutsch bzw. in lateinischer
+    // Umschrift (statt thailändischer Schrift)
+    L.tileLayer("https://tile.openstreetmap.de/{z}/{x}/{y}.png", {
       maxZoom: 18,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende',
     }).addTo(map);
     // Tippen auf die Karte → neuen Ort an dieser Stelle anlegen
     map.on("click", (e) => edit({ name: "", lat: e.latlng.lat, lon: e.latlng.lng, description: "", interested: [] }, true));
