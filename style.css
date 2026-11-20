@@ -351,3 +351,61 @@ button { font: inherit; color: inherit; }
   transition: transform 0.25s;
 }
 .toast.is-visible { transform: translate(-50%, 0); }
+
+/* =========================================================
+   HINWEIS AUF NEUE ÄNDERUNGEN (Startseite oben rechts)
+   ========================================================= */
+.news {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: max(1rem, env(safe-area-inset-top)) 1.25rem 1rem;
+  margin-bottom: -1.5rem;
+  background: rgb(11 37 48 / 0.96);
+}
+.news__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  font: 700 1rem var(--font-mono);
+  color: #1f1300;
+  background: var(--c-sun);
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgb(245 158 11 / 0.6);
+  animation: news-pulse 2s ease-out infinite;
+}
+@keyframes news-pulse { to { box-shadow: 0 0 0 12px rgb(245 158 11 / 0); } }
+.news__items { display: grid; gap: 0.3rem; justify-items: end; }
+.news__item {
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #fff;
+  text-decoration: none;
+  background: rgb(245 158 11 / 0.16);
+  border: 1px solid rgb(245 158 11 / 0.45);
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+}
+.news__item:hover { background: rgb(245 158 11 / 0.3); }
+@media (min-width: 900px) {
+  .news { position: absolute; top: 0; right: 0; padding: 1.5rem 2rem 0; margin: 0; background: none; }
+}
+
+/* Punkt an Navigationspunkten mit neuen Änderungen */
+.topnav__links a.has-news::after {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 0.35rem;
+  vertical-align: 0.15em;
+  background: var(--c-sun);
+  border-radius: 50%;
+}
+@media (prefers-reduced-motion: reduce) { .news__icon { animation: none; } }

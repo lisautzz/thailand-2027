@@ -19,6 +19,7 @@ import * as route from "./js/route.js";
 import * as places from "./js/places.js";
 import * as todos from "./js/todos.js";
 import * as expenses from "./js/expenses.js";
+import * as notify from "./js/notify.js";
 
 const VIEWS = {
   start: { onShow: start.startAnimation, onHide: start.stopAnimation, public: true },
@@ -54,7 +55,11 @@ function showView() {
   document.querySelectorAll("[data-nav]").forEach((a) => a.classList.toggle("is-active", a.dataset.nav === view));
 
   current = view;
-  if (!locked) VIEWS[view].onShow?.();
+  if (!locked) {
+    VIEWS[view].onShow?.();
+    notify.markSeen(view); // Seite angeschaut → Hinweis für diese Seite verschwindet
+  }
+  notify.render();
   window.scrollTo(0, 0);
 }
 
@@ -123,13 +128,20 @@ async function boot() {
   }
   initLogin();
   initStatus();
+  notify.init();
 
   // Änderungen vom anderen Gerät: Daten neu laden, offene Seite neu zeichnen
   store.onRemoteChange((key) => {
+    if (key === notify.seenKey) notify.reloadSeen(); // auf anderem Gerät angeschaut
     const target = MODULE_FOR_KEY[key];
-    if (!target) return;
-    target.mod.load();
-    if (current === target.view) VIEWS[current].onShow?.();
+    if (target) {
+      target.mod.load();
+      if (current === target.view) {
+        VIEWS[current].onShow?.();
+        notify.markSeen(current); // man sieht die Änderung ja gerade live
+      }
+    }
+    notify.render();
   });
   store.onError(toast);
 

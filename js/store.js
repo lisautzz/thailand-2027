@@ -21,6 +21,7 @@ export const KEYS = ["blocks", "activities", "nights", "todos", "expenses", "pla
 let supabase = null;
 let user = null;
 const cache = new Map();          // key → value (im Cloud-Modus)
+const meta = new Map();           // key → { updated_at, updated_by } – wer hat zuletzt geändert?
 const listeners = new Set();      // werden bei Änderungen von anderen Geräten aufgerufen
 const errorListeners = new Set();
 
@@ -75,7 +76,7 @@ export const store = {
     }
 
     // Alle Listen auf einmal laden
-    const { data: rows, error } = await supabase.from(TABLE).select("key, value");
+    const { data: rows, error } = await supabase.from(TABLE).select("key, value, updated_at, updated_by");
     if (error) {
       // Eingeloggt, aber nicht auf der Liste – oder Tabelle fehlt
       console.error(error);
@@ -83,7 +84,10 @@ export const store = {
       this.loginError = "Kein Zugriff auf die Daten. Steht deine E-Mail-Adresse in der Tabelle allowed_emails?";
       return this.mode;
     }
-    rows.forEach((r) => cache.set(r.key, r.value));
+    rows.forEach((r) => {
+      cache.set(r.key, r.value);
+      meta.set(r.key, { updated_at: r.updated_at, updated_by: r.updated_by });
+    });
     this.mode = "cloud";
 
     // Einmalig: Was bisher nur lokal gespeichert war, in die Datenbank übernehmen
@@ -98,6 +102,7 @@ export const store = {
       .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, (payload) => {
         const row = payload.new;
         if (!row?.key) return;
+        meta.set(row.key, { updated_at: row.updated_at, updated_by: row.updated_by });
         // Eigene Änderungen kommen auch zurück – die ignorieren wir
         if (JSON.stringify(cache.get(row.key)) === JSON.stringify(row.value)) return;
         cache.set(row.key, row.value);
@@ -125,15 +130,22 @@ export const store = {
     }
     cache.set(key, structuredClone(value));
     local.set(key, value); // zusätzlich lokale Kopie als Notfall-Backup
+    const stamp = { updated_at: new Date().toISOString(), updated_by: user.email };
+    meta.set(key, stamp);
     supabase
       .from(TABLE)
-      .upsert({ key, value, updated_at: new Date().toISOString(), updated_by: user.email })
+      .upsert({ key, value, ...stamp })
       .then(({ error }) => {
         if (error) {
           console.error(error);
           errorListeners.forEach((fn) => fn("Speichern fehlgeschlagen. Bist du online?"));
         }
       });
+  },
+
+  // Wer hat diese Liste zuletzt gespeichert und wann? (nur im Cloud-Modus)
+  meta(key) {
+    return meta.get(key) || null;
   },
 
   // Andere Module können sich benachrichtigen lassen
